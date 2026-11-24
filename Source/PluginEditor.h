@@ -23,6 +23,8 @@ private:
     void timerCallback() override;
     void updateButtonStatesFromParams();
     void setIntParam(const juce::String& paramId, int value);
+    void setFloatParam(const juce::String& paramId, float value);
+    void toggleIsoKill(const juce::String& paramId);
     void configureKnob(juce::Slider& slider, juce::Label& label, const juce::String& text,
                        bool isGiantScene = false, bool isIso = false,
                        juce::Colour accent = rmx::Palette::pioneerBlue);
@@ -72,7 +74,9 @@ private:
     std::unique_ptr<SliderAttachment> releaseTimeAtt;
     std::unique_ptr<ButtonAttachment> autoBpmAtt, quantizeAtt, bypassAtt, overdubAtt;
 
+    // Live Keyboard Performance State
     bool spaceLeverDown = false;
+    int heldRollKey = 0; // '5', '6', '7', '8'
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(RMX1000AudioProcessorEditor)
 };
