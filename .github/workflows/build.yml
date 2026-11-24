@@ -1,0 +1,61 @@
+name: Build RMX-1000 VST3 & Standalone
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    name: Build Windows (VST3 + Standalone)
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure CMake (MSVC Release)
+        run: cmake -B build -G "Visual Studio 17 2022" -A x64
+
+      - name: Build VST3 and Standalone
+        run: cmake --build build --config Release --parallel
+
+      - name: Package Windows Artifacts
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist/Windows | Out-Null
+          Copy-Item -Recurse -Force "build/RMX1000_artefacts/Release/VST3/RMX-1000.vst3" "dist/Windows/RMX-1000.vst3"
+          Copy-Item -Force "build/RMX1000_artefacts/Release/Standalone/RMX-1000.exe" "dist/Windows/RMX-1000.exe"
+
+      - name: Upload Windows VST3 & Standalone
+        uses: actions/upload-artifact@v4
+        with:
+          name: RMX-1000-Windows-VST3-Standalone
+          path: dist/Windows/
+
+  build-macos:
+    name: Build macOS (VST3 + AU + Standalone)
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure CMake (Xcode/Clang Release)
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build VST3, AU, and Standalone
+        run: cmake --build build --config Release --parallel
+
+      - name: Package macOS Artifacts
+        run: |
+          mkdir -p dist/macOS
+          cp -R build/RMX1000_artefacts/Release/VST3/RMX-1000.vst3 dist/macOS/
+          cp -R build/RMX1000_artefacts/Release/AU/RMX-1000.component dist/macOS/
+          cp -R build/RMX1000_artefacts/Release/Standalone/RMX-1000.app dist/macOS/
+
+      - name: Upload macOS Plugins
+        uses: actions/upload-artifact@v4
+        with:
+          name: RMX-1000-macOS-VST3-AU-Standalone
+          path: dist/macOS/
